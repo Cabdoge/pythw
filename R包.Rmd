@@ -1,0 +1,76 @@
+---
+title: "R包制作"
+author: "庞逸天"
+date: "2025-12-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#R 包介绍
+本R包内置了logit逻辑回归、线性判别分析和欧氏距离分离器三种分类函数，并为每一种函数编写了对应的留一法函数（可以扩展到去除多个数据）
+
+导入包的过程如下
+```{r}
+install.packages('/Users/1tianpang/Desktop/R/pythw_0.1.0.tgz')
+library(pythw)
+```
+
+使用其中的函数作留一法的结果如下
+```{r}
+##引入鸢尾花数据集
+data(iris)
+n=100
+p=4
+X=as.matrix(iris[(1:n)+50,-(p+1)])
+X1=cbind(1,X)
+Y=c(rep(1,50),rep(0,50))
+
+##logit的留一法
+Loo_logit=function(k){
+  X1=cbind(1,X)
+  beta=myglm(X[-k,],Y[-k])
+  y_test=as.numeric(X1[k,]%*%beta>0)
+  return(y_test)
+}
+
+##lda的留一法
+Loo_lda=function(k){
+  X1=cbind(1,X)
+  beta=mylda(X[-k,],Y[-k])
+  y_test=as.numeric(X1[k,]%*%beta>0)
+  return(y_test)
+}
+
+##欧式距离法的留一法
+Loo_dis=function(k){
+  return(dissort(X[-k,],Y[-k],X[k,]))
+}
+
+##平均错分率
+y1=sapply(1:n,Loo_logit)
+err1=mean((y1-Y)^2)
+
+y2=sapply(1:n,Loo_lda)
+err2=mean((y2-Y)^2)
+
+
+y3=sapply(1:n,Loo_dis)
+err3=mean((y3-Y)^2)
+
+err1
+err2
+err3
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
